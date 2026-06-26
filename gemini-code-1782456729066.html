@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>น้องปอดพาสเทล AR Game - สุขศึกษา ป.6</title>
+    
+    <!-- คลังโค้ด A-Frame และฟอนต์ไอติม (Itim) จาก Google Fonts -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+
+    <style>
+        /* กำหนดให้ทั้งหน้าเว็บใช้ฟอนต์ไอติมสุดน่ารัก */
+        body, button, h2, h3, p {
+            font-family: 'Itim', cursive !important;
+        }
+
+        /* หน้าจอเริ่มต้น (โทนสีพาสเทลหวานๆ) */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ffdee9 0%, #b5fffc 100%);
+            color: #4a4a4a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #welcome-screen h2 {
+            font-size: 32px;
+            color: #ff6b81;
+            text-shadow: 2px 2px #fff;
+            margin-bottom: 10px;
+        }
+
+        #welcome-screen p {
+            font-size: 18px;
+            color: #57606f;
+            line-height: 1.5;
+        }
+
+        /* กล่องคำถาม (ดีไซน์โค้งมน นุ่มฟูเหมือนก้อนเมฆ) */
+        #quiz-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 20px;
+            border-radius: 24px;
+            border: 4px solid #ffb7b2;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            display: none;
+            text-align: center;
+            z-index: 9998;
+            box-sizing: border-box;
+        }
+
+        #quiz-container h3 {
+            margin-top: 0;
+            color: #ff6b6b;
+            font-size: 22px;
+        }
+
+        /* ปุ่มกด (ทรงแคปซูล สีพาสเทลสดใส) */
+        .btn {
+            background: #ff6b81;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            margin: 10px 5px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 4px 0 #e44d63;
+            transition: all 0.1s ease;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #e44d63;
+        }
+
+        .btn-quiz {
+            background: #ffb7b2;
+            color: #4a4a4a;
+            box-shadow: 0 4px 0 #e09d98;
+            width: 100%;
+            display: block;
+            margin: 8px 0;
+            text-align: left;
+            padding-left: 20px;
+        }
+        .btn-quiz:active {
+            box-shadow: 0 0px 0 #e09d98;
+        }
+
+        /* กล่องข้อความเฉลย */
+        #result-box {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- หน้าแรกต้อนรับเด็กๆ -->
+    <div id="welcome-screen">
+        <h2>🫁 น้องปอดพาสเทล AR Game</h2>
+        <p>เย้! มาเรียนรู้ระบบหายใจกันเถอะ<br>วิธีเล่น: กดปุ่มด้านล่าง แล้วส่องกล้องไปที่พื้นโต๊ะ<br>เพื่อเสก "น้องปอด 3D" สุดน่ารักออกมากันเลย! ✨</p>
+        <button class="btn" id="start-btn">เปิดโลก AR ตะลุยด่าน 🚀</button>
+    </div>
+
+    <!-- โลก AR (ส่องพื้นรอบตัว) -->
+    <a-scene webxr="optionalFeatures: hit-test;" xr-mode-ui="enabled: false">
+        <a-assets>
+            <!-- ลิงก์ไฟล์โมเดลปอด 3D -->
+            <a-asset-item id="lungModel" src="./lung-model.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- จัดแสงนุ่มๆ ให้เข้ากับธีมพาสเทล -->
+        <a-entity light="type: ambient; intensity: 0.9;"></a-entity>
+        <a-entity light="type: directional; intensity: 0.5;" position="1 3 1"></a-entity>
+
+        <a-entity camera look-controls position="0 1.6 0"></a-entity>
+
+        <!-- ตัวโมเดล 3D ตั้งค่าให้หมุนช้าๆ น่ารักๆ -->
+        <a-entity id="ar-model-container" position="0 0.2 -1.2" scale="0.7 0.7 0.7" visible="false">
+            <a-gltf-model src="#lungModel" animation="property: rotation; to: 0 360 0; loop: true; dur: 12000; easing: linear"></a-gltf-model>
+        </a-entity>
+    </a-scene>
+
+    <!-- กล่องคำถามดีไซน์ฟรุ้งฟริ้ง -->
+    <div id="quiz-container">
+        <h3>🎒 ด่านสุขศึกษา: ดูแลรักษาน้องปอด</h3>
+        <p id="question" style="color: #555; text-align: left;">
+            <b>สถานการณ์:</b> ถ้าเพื่อนนั่งสูบบุหรี่อยู่ใกล้ๆ หรือบริเวณนั้นมีฝุ่น PM 2.5 หนาแน่น นักเรียนควรทำอย่างไรดีนะ? 🤔
+        </p>
+        <button class="btn btn-quiz" onclick="checkAnswer(2)">🍭 A. ใส่หน้ากากอนามัยแล้วรีบเดินหนีไปที่อื่น</button>
+        <button class="btn btn-quiz" onclick="checkAnswer(1)">🧁 B. เดินเข้าไปบอกให้เพื่อนเลิกสูบตรงนั้น</button>
+        <button class="btn btn-quiz" onclick="checkAnswer(3)">🍿 C. ใช้มืออุดจมูกแล้วทนยืนคุยกับเพื่อนต่อ</button>
+        
+        <div id="result-box"></div>
+    </div>
+
+    <script>
+        const welcomeScreen = document.querySelector('#welcome-screen');
+        const startBtn = document.querySelector('#start-btn');
+        const arModelContainer = document.querySelector('#ar-model-container');
+        const quizContainer = document.querySelector('#quiz-container');
+        const resultBox = document.querySelector('#result-box');
+        const sceneEl = document.querySelector('a-scene');
+
+        // เมื่อกดเริ่มเกม
+        startBtn.addEventListener('click', () => {
+            welcomeScreen.style.display = 'none'; // แก้ไขบั๊กคำสั่ง style ซ้ำแล้ว
+            sceneEl.enterVR(); 
+            arModelContainer.setAttribute('visible', 'true');
+            quizContainer.style.display = 'block';
+        });
+
+        // ระบบตรวจคำตอบพาสเทล
+        function checkAnswer(choice) {
+            resultBox.style.display = "block";
+            if (choice === 2) {
+                resultBox.style.background = "#e8f5e9";
+                resultBox.style.color = "#2e7d32";
+                resultBox.innerHTML = "<b>ถูกต้องที่สุดเลยจ้า! 🎉</b><br>การสวมหน้ากากและหลีกเลี่ยงควันพิษ จะช่วยปกป้องถุงลมปอดของเด็กๆ ไม่ให้ถูกทำลายนั่นเอง เก่งมาก!";
+            } else if (choice === 1) {
+                resultBox.style.background = "#ffebee";
+                resultBox.style.color = "#c62828";
+                resultBox.innerHTML = "<b>เกือบถูกแล้วน้า! ❌</b><br>การเตือนเพื่อนเป็นสิ่งที่ดี แต่เราจะสูดควันมือสองเข้าปอดตัวเองไประหว่างคุยนะจ๊ะ ต้องเซฟปอดตัวเองก่อนน้า";
+            } else {
+                resultBox.style.background = "#ffebee";
+                resultBox.style.color = "#c62828";
+                resultBox.innerHTML = "<b>แง ยังไม่ถูกนะจ๊ะ! ❌</b><br>มือเปล่าไม่สามารถกรองฝุ่นจิ๋วหรือสารพิษในบุหรี่ได้เลย ปอดจะทำงานหนักและป่วยได้ง่ายครับผม";
+            }
+        }
+    </script>
+
+</body>
+</html>
